@@ -1,5 +1,7 @@
 //CHANGED HEAPS OF THINGS AYAYAYAYA (NOT REALLY JUST TRYBG!)
 
+//Trying new things hahaha
+
 int b=0; //reading the time for main loop to be run for 15s
 int c=0; //memory for the time in mainloop
 
