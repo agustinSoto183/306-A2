@@ -1,6 +1,5 @@
-//CHANGED HEAPS OF THINGS AYAYAYAYA (NOT REALLY JUST TRYBG!)
-
 //Trying new things hahaha
+//Hey
 
 int b=0; //reading the time for main loop to be run for 15s
 int c=0; //memory for the time in mainloop
@@ -45,7 +44,8 @@ void setup() {
     //Wait for user input
   }  
   
-   RPM = Serial.readString().toFloat(); //Reading the Input string from Serial port.
+  RPM = Serial.readString().toFloat(); //Reading the Input string from Serial port.
+  
   if (RPM<0)
   {
     analogWrite(3,255);                 //changing the direction of motor's rotation
@@ -65,133 +65,124 @@ void loop() {
 
 
 
-b=millis();    //reading time
-c=b;           //storing the current time 
+  b=millis();    //reading time
+  c=b;           //storing the current time 
 
 
 
-while ((b>=c) && (b<=(c+15500)) && exitt==0)   //let the main loop to be run for 15s
-{
-
-
-
-  
-  if (b%13==0 && repc==1)                   //PI controller
+  while ((b>=c) && (b<=(c+15500)) && exitt==0)   //let the main loop to be run for 15s
   {
-  eri=ki*(RPM-rpmm)+eri;
-  ctrl=50+kp*(RPM-rpmm)+eri;
-  analogWrite(6,ctrl);
-  repc=0;
+
+    if (b%13==0 && repc==1)                   //PI controller
+    {
+      eri=ki*(RPM-rpmm)+eri;
+      ctrl=50+kp*(RPM-rpmm)+eri;
+      analogWrite(6,ctrl);
+      repc=0;
+    }
+    if(b%13==1)
+    {
+      repc=1;
+    }
+
+
+    s1=digitalRead(7);           //reading Chanel 1 of builtin encoder
+    s2=digitalRead(8);           //reading Chanel 2 of builtin encoder
+    if (s1!=s2 && r==0)
+    {
+      s=s+1;      //counters for rpm that displyed every 5s
+      s_2=s_2+1;  //counters for rpm that used in PI contoller
+      r=1;        // this indicator wont let this condition, (s1 != s2), to be counted until the next condition, (s1 == s2), happens
+    }
+
+    if (s1==s2 && r==1)
+    {
+      s=s+1;                                                //counters for rpm that displyed every 5s
+      s_2=s_2+1;                                            //counters for rpm that used in PI contoller
+      r=0;                                                  // this indicator wont let this condition, (sm1 == sm2), to be counted until the next condition, (sm1 != sm2), happens
+    }
+
+    
+
+
+    b=millis();                                             //updating time
+    if (b%100<=1 && repeat==0)
+    {
+      t0=b;                                                 //storing the current time once
+      repeat=1;
+    }
+
+
+    if (b%100==0)
+    {
+      Serial.print("time in ms: ");
+      Serial.print(b-t0);
+      
+      Serial.print("  spontaneous speed from builtin encoder:  ");
+      rpmm=(s_2/(2*114))*600;                               //formulation for rpm in each 100ms for PI controller
+      Serial.println(rpmm);
+      s_2=0;                                                //reseting the counters of PI controller rpm meter
+      
+      
+      
+      if ((b-t0)%5000==0)
+      {
+        Serial.println();
+        Serial.print("RPM from builtin encoder: ");
+        Serial.println((s/(228))*12);                         //formula for rpm in each 5s
+        
+        Serial.print("RPM from optical quadrature encoder: ");
+        Serial.println(0);
+        
+        Serial.print("Error: ");
+        Serial.println(-(s/(228))*12);
+        
+        Serial.print("direction read by motor's sensor: ");
+        if (dirm==0){Serial.print("CW");}
+        else{Serial.print("CCW");}
+        Serial.print("  ,   ");
+        
+        Serial.print("direction read by sensor:  ");
+        Serial.println("");
+        Serial.println();
+
+        s=0;
+        directionm=0;
+      }
+      delay(1);
+    }
+
+
+    if((s1==HIGH)&&(s2==HIGH)&&(s2m==LOW))                  //reading the direction of motor by cheaking which chanel follows which
+    {
+      directionm=directionm+1;
+    }
+
+    if((s1==LOW)&&(s2==LOW)&&(s2m==HIGH))
+    {
+      directionm=directionm+1;
+    }
+
+
+    
+    s2m=s2;                                                 //memory of the previous builtin encoder chanel 2
+
+
+
+    if (directionm>100)
+    {
+      dirm=0;
+    }
+    if (directionm<20)
+    {
+      dirm=1;
+    }
+
+
+
+    b=millis();                                             //updating time
+
   }
-  if(b%13==1)
-  {
-    repc=1;
-  }
-
-
-
-
-
-  s1=digitalRead(7);           //reading Chanel 1 of builtin encoder
-  s2=digitalRead(8);           //reading Chanel 2 of builtin encoder
- if (s1!=s2 && r==0)
- {
-  s=s+1;      //counters for rpm that displyed every 5s
-  s_2=s_2+1;  //counters for rpm that used in PI contoller
-  r=1;        // this indicator wont let this condition, (s1 != s2), to be counted until the next condition, (s1 == s2), happens
- }
-
- if (s1==s2 && r==1)
- {
-  s=s+1;                                                //counters for rpm that displyed every 5s
-  s_2=s_2+1;                                            //counters for rpm that used in PI contoller
-  r=0;                                                  // this indicator wont let this condition, (sm1 == sm2), to be counted until the next condition, (sm1 != sm2), happens
- }
-
- 
-
-
-b=millis();                                             //updating time
-if (b%100<=1 && repeat==0)
-{
-  t0=b;                                                 //storing the current time once
-  repeat=1;
-}
-
-
-if (b%100==0)
-{
-  Serial.print("time in ms: ");
-  Serial.print(b-t0);
-  
-  Serial.print("  spontaneous speed from builtin encoder:  ");
-  rpmm=(s_2/(2*114))*600;                               //formulation for rpm in each 100ms for PI controller
-  Serial.println(rpmm);
-  s_2=0;                                                //reseting the counters of PI controller rpm meter
-  
-  
-  
-  if ((b-t0)%5000==0)
-  {
-  Serial.println();
-  Serial.print("RPM from builtin encoder: ");
-  Serial.println((s/(228))*12);                         //formula for rpm in each 5s
-  
-  Serial.print("RPM from optical quadrature encoder: ");
-  Serial.println(0);
-  
-  Serial.print("Error: ");
-  Serial.println(-(s/(228))*12);
-  
-  Serial.print("direction read by motor's sensor: ");
-  if (dirm==0){Serial.print("CW");}
-  else{Serial.print("CCW");}
-  Serial.print("  ,   ");
-  
-  Serial.print("direction read by sensor:  ");
-  Serial.println("");
-  Serial.println();
-
-  s=0;
-  directionm=0;
-  }
-  delay(1);
-}
-
-
-
-
-
-if((s1==HIGH)&&(s2==HIGH)&&(s2m==LOW))                  //reading the direction of motor by cheaking which chanel follows which
-{
-  directionm=directionm+1;
-}
-
-if((s1==LOW)&&(s2==LOW)&&(s2m==HIGH))
-{
-  directionm=directionm+1;
-}
-
-
- 
-s2m=s2;                                                 //memory of the previous builtin encoder chanel 2
-
-
-
-if (directionm>100)
-{
-  dirm=0;
-}
-if (directionm<20)
-{
-  dirm=1;
-}
-
-
-
-b=millis();                                             //updating time
-
-}
-analogWrite(6,0);                                       //turning off the motor
-exitt=1;                                                //changing the exit condition to prevent the motor to run after 15s
+  analogWrite(6,0);                                       //turning off the motor
+  exitt=1;                                                //changing the exit condition to prevent the motor to run after 15s
 }
