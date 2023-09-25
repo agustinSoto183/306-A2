@@ -5,25 +5,41 @@
 int b=0; //reading the time for main loop to be run for 15s
 int c=0; //memory for the time in mainloop
 
+// encoder counts
 float s=0;   //built-in encoder counts
 float s_2;   //built-in encoder counts for RPM calculation for PI controler
+float Qcounter5s = 0;
 
+//rpm holder
+float Qrpmm; //our quadrature encoder RPM
 float rpmm;  //rpm obtained each 5s from built-in encoder
 
+//Encoder input
 int s1=0;    //built-in encoder chanel one outpot
 int s2=0;    //built-in encoder chanel two outpot
+int QuadratureChannel1 = 0; //Quadrature Channel 1
+int QuadratureChannel2 = 0; //Quadrature Channel 2
+
+//repetition indicator
 int r=0;     //repetition indicator for reading counts of bult-in encoder
+int repetition = 0; //Quad repetition indicator
+
+//previous channel 2 state
 int s2m=0;   //memory of built-in encoder chanel two outpot
+int QuadratureChannel2m = 0;
+
+//Direction variables
 int directionm=0;  //indicator for direction read by built-in encoder
+int Qdirectionm = 0;
 int dirm;          //indicator for direction read by built-in encode
+int Qdirm;
+
 int RPM;           //Commanded RPM
 
 int exitt=0;       //mainloop exit condition
 
 
-
-
-
+//PI controller stuff
 float ctrl;      //PI controller outpot
 float kp=.4;     //proportional gain of PI controller 
 float ki=.01;    //integral gain of PI controller
@@ -36,6 +52,9 @@ int repeat=0;    //repeat indicator to only let the memory of time for the Purpo
 
 void setup() {
   // put your setup code here, to run on
+  pinMode(0, INPUT); //Set quadriture encoders signal as inputs
+  pinMode(1, INPUT); 
+
   Serial.begin(250000);                  //Baud rate of communication 
 
   Serial.println("Enter the desired RPM.");  
@@ -54,9 +73,6 @@ void setup() {
   RPM=abs(RPM);
   
 }
-
-
-
 
 
 
@@ -89,6 +105,36 @@ void loop() {
 
     s1=digitalRead(7);           //reading Chanel 1 of builtin encoder
     s2=digitalRead(8);           //reading Chanel 2 of builtin encoder
+
+    if (analogRead(0) > 650){
+      QuadratureChannel1 = 1;
+    }
+    else
+    {
+      QuadratureChannel1 = 0;
+    }
+    
+    if (analogRead(1) > 650){
+      QuadratureChannel2 = 1;
+    }
+    else
+    {
+      QuadratureChannel2 = 0;
+    }
+
+
+
+    // Serial.print("Channel 1: ");
+    // Serial.println(QuadratureChannel1);
+    // Serial.print("Channel 2: ");
+    // Serial.println(QuadratureChannel2);
+    // Serial.println(Qcounter5s);
+
+    
+
+
+
+
     if (s1!=s2 && r==0)
     {
       s=s+1;      //counters for rpm that displyed every 5s
@@ -103,6 +149,17 @@ void loop() {
       r=0;                                                  // this indicator wont let this condition, (sm1 == sm2), to be counted until the next condition, (sm1 != sm2), happens
     }
 
+    if(QuadratureChannel1 != QuadratureChannel2 && repetition == 0)
+    {
+      Qcounter5s = Qcounter5s + 1;
+      repetition = 1;
+    }
+
+    if(QuadratureChannel1 == QuadratureChannel2 && repetition == 1)
+    {
+      Qcounter5s = Qcounter5s + 1;
+      repetition = 0;
+    }
     
 
 
@@ -133,10 +190,10 @@ void loop() {
         Serial.println((s/(228))*12);                         //formula for rpm in each 5s
         
         Serial.print("RPM from optical quadrature encoder: ");
-        Serial.println(0);
+        Serial.println((Qcounter5s/(228))*12); //CODE ME
         
         Serial.print("Error: ");
-        Serial.println(-(s/(228))*12);
+        Serial.println(((Qcounter5s/(228))*12)-((s/(228))*12)); //CODE ME
         
         Serial.print("direction read by motor's sensor: ");
         if (dirm==0){Serial.print("CW");}
@@ -144,7 +201,8 @@ void loop() {
         Serial.print("  ,   ");
         
         Serial.print("direction read by sensor:  ");
-        Serial.println("");
+        if (Qdirm == 0){Serial.println("CW");}
+        else{Serial.println("CCW");}
         Serial.println();
 
         s=0;
@@ -164,9 +222,20 @@ void loop() {
       directionm=directionm+1;
     }
 
+    if((QuadratureChannel1 == HIGH)&&(QuadratureChannel2 == HIGH)&&(QuadratureChannel2m == LOW))
+    {
+      Qdirectionm = Qdirectionm + 1;
+    }
+
+    if((QuadratureChannel1 == LOW)&&(QuadratureChannel2 == LOW)&&(QuadratureChannel2m == HIGH))
+    {
+      Qdirectionm = Qdirectionm + 1;
+    }
+
 
     
     s2m=s2;                                                 //memory of the previous builtin encoder chanel 2
+    QuadratureChannel2m = QuadratureChannel2;
 
 
 
@@ -178,6 +247,16 @@ void loop() {
     {
       dirm=1;
     }
+
+    if (Qdirectionm>100)
+    {
+      Qdirm=0;
+    }
+    if (Qdirectionm<20)
+    {
+      Qdirm=1;
+    }
+
 
 
 
