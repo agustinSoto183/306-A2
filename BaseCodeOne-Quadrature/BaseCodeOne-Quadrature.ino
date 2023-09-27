@@ -106,7 +106,7 @@ void loop() {
     s1=digitalRead(7);           //reading Chanel 1 of builtin encoder
     s2=digitalRead(8);           //reading Chanel 2 of builtin encoder
 
-    if (analogRead(0) > 650){
+    if (analogRead(0) > 200){
       QuadratureChannel1 = 1;
     }
     else
@@ -114,7 +114,7 @@ void loop() {
       QuadratureChannel1 = 0;
     }
     
-    if (analogRead(1) > 650){
+    if (analogRead(1) > 200){
       QuadratureChannel2 = 1;
     }
     else
@@ -206,7 +206,9 @@ void loop() {
         Serial.println();
 
         s=0;
+        Qcounter5s = 0;
         directionm=0;
+        Qdirectionm = 0;
       }
       delay(1);
     }
