@@ -13,7 +13,8 @@ int three;
 int two;
 int one;
 int zerolsb;
-
+int grayIn;
+int binary;
 
 
 
@@ -25,6 +26,10 @@ int t0=0;   //memory for time in ms
 
 int finish=0;  //finish indicator
 int rep=1;     //Repetition indicator
+
+int concat;
+
+int gray;
 
 
 
@@ -61,7 +66,7 @@ float ki = .02;                               //integral gain of PI
 void loop() 
 {
   // put your main code here, to run repeatedly:
-  pinMode(0, INPUT); //Set absolu encoders signal as inputs
+  pinMode(0, INPUT); //Set absolut encoders signal as inputs
   pinMode(1, INPUT); 
   pinMode(2, INPUT); 
   pinMode(3, INPUT); 
@@ -110,6 +115,8 @@ void loop()
   if (finish==1){                            //this part of the code is for displaying the result
     delay(500);                              //half second delay
 
+    grayIn = greycodeToAngle(analogRead(4), analogRead(3), analogRead(2), analogRead(1), analogRead(0));
+    binary = grayToBinary(grayIn);
 
 
     rep=rep+1;                               // increasing the repetition indicator
@@ -142,27 +149,17 @@ int greycodeToAngle(int Afourmsb, int Athree, int Atwo, int Aone, int Azerolsb){
   one = Aone > treshold ? 1 : 0;
   zerolsb = Azerolsb > treshold ? 1 : 0;
 
+  concat = 0b10000*fourmsb + 0b1000*three + 0b100*two + 0b100*one + zerolsb;
+
+  return concat;
 }
 
-uint8_t Gray2Binary(uint8_t data)
- {
-  byte b[8]={0,0,0,0,0,0,0,0};
-  int8_t i=0;
-  for(i=0;i<8;i++)
-  {
-    b[i]=(data & (1<<i))>>i;
+int grayToBinary(int gray){
+  int binary=0;
+  for(;gray;gray=gray>>1){
+    binary^=gray; //binary=binary^gray;
   }
-  uint8_t n_data=0;
-  n_data= (b[7]<<7);
-  for(i=6;i>=0;i--)  
-  {
-    if( (b[i+1]+b[i])==0 || (b[i+1]+b[i])==2 )
-    {
-      n_data|=(0<<i);
-    }else if( (b[i+1]+b[i])==1 || (b[i+1]+b[i])==3)
-    {
-      n_data|=(1<<i);
-    }
-  }
- return n_data;
+  return binary;
 }
+
+
