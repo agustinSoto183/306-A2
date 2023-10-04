@@ -1,11 +1,12 @@
-//Henissa was here!
+//Henissa was here! // to do: threshold for analogue 0 and 1
 //#define NOPRINT // comment me out if you want to have no prints
 #define NOPRINTANALOGUE // comment me out if you want to have no analogue prints
-#define TRESHOLDA0 100
-#define TRESHOLDA1 100
+#define TRESHOLDA0 400
+#define TRESHOLDA1 400
+#define STOP
 
 
-int numStripes = 40; // number of stripes in each trace. ALTER THIS VALUE AS NEEDED
+int numStripes = 60; // number of stripes in each trace. ALTER THIS VALUE AS NEEDED
 
 int b=0; //reading the time for main loop to be run for 15s
 int c=0; //memory for the time in mainloop
@@ -61,13 +62,14 @@ void setup() {
 
   Serial.begin(250000);                  //Baud rate of communication
 
-  Serial.println("Enter the desired RPM.");  
-  //while (Serial.available() == 0) {
+  Serial.println("Enter the desired RPM."); 
+  while (Serial.available() == 0) {
     //Wait for user input
-//}  
+  }  
 
-  //RPM = Serial.readString().toFloat(); //Reading the Input string from Serial port.
-  RPM = 60;
+  RPM = Serial.readString().toFloat(); //Reading the Input string from Serial port.
+   Serial.println(RPM);
+  //RPM = -200;
 
   if (RPM<0){
     analogWrite(3,255);                 //changing the direction of motor's rotation
@@ -152,13 +154,13 @@ void loop() {
     if (b%100==0)
     {
       #ifndef NOPRINT
-        Serial.print("time in ms: ");
-        Serial.print(b-t0);
-        Serial.print("  spontaneous speed from builtin encoder:  ");
+        //Serial.print("time in ms: ");
+        //Serial.print(b-t0);
+        //Serial.print("  spontaneous speed from builtin encoder:  ");
       #endif
       rpmm=(s_2/(2*114))*600;    
       #ifndef NOPRINT                 //formulation for rpm in each 100ms for PI controller
-        Serial.println(rpmm);
+        //Serial.println(rpmm);
       #endif
       s_2=0;                          //reseting the counters of PI controller rpm meter
 
@@ -181,7 +183,7 @@ void loop() {
           Serial.print("  ,   ");
 
           Serial.print("direction read by sensor:  ");
-          if (Qdirm == 1){Serial.println("CW");}
+          if (Qdirm == 0){Serial.println("CW");}
           else{Serial.println("CCW");}
           Serial.println();
 
@@ -235,6 +237,8 @@ void loop() {
     b=millis();                                             //updating time
   }
 
-  //analogWrite(6,0);                                       //turning off the motor
-  exitt=0;                                                //changing the exit condition to prevent the motor to run after 15s
+  #ifdef STOP
+  analogWrite(6,0);                                       //turning off the motor
+  exitt=1;  
+  #endif
 }
