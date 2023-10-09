@@ -7,36 +7,36 @@
 const byte decimalToGrayTable[32] = {
   0,   // Decimal: 0  => 00000 (Gray Code)
   1,   // Decimal: 1  => 00001 (Gray Code)
-  3,   // Decimal: 2  => 00011 (Gray Code)
-  2,   // Decimal: 3  => 00010 (Gray Code)
-  6,   // Decimal: 4  => 00110 (Gray Code)
-  7,   // Decimal: 5  => 00111 (Gray Code)
-  5,   // Decimal: 6  => 00101 (Gray Code)
-  4,   // Decimal: 7  => 00100 (Gray Code)
-  12,  // Decimal: 8  => 01100 (Gray Code)
-  13,  // Decimal: 9  => 01101 (Gray Code)
-  15,  // Decimal: 10 => 01111 (Gray Code)
-  14,  // Decimal: 11 => 01110 (Gray Code)
-  10,  // Decimal: 12 => 01010 (Gray Code)
-  11,  // Decimal: 13 => 01011 (Gray Code)
-  9,   // Decimal: 14 => 01001 (Gray Code)
-  8,   // Decimal: 15 => 01000 (Gray Code)
-  24,  // Decimal: 16 => 11000 (Gray Code)
-  25,  // Decimal: 17 => 11001 (Gray Code)
-  27,  // Decimal: 18 => 11011 (Gray Code)
-  26,  // Decimal: 19 => 11010 (Gray Code)
-  30,  // Decimal: 20 => 11110 (Gray Code)
-  31,  // Decimal: 21 => 11111 (Gray Code)
-  29,  // Decimal: 22 => 11101 (Gray Code)
-  28,  // Decimal: 23 => 11100 (Gray Code)
-  20,  // Decimal: 24 => 10100 (Gray Code)
-  21,  // Decimal: 25 => 10101 (Gray Code)
-  23,  // Decimal: 26 => 10111 (Gray Code)
-  22,  // Decimal: 27 => 10110 (Gray Code)
-  18,  // Decimal: 28 => 10010 (Gray Code)
-  19,  // Decimal: 29 => 10011 (Gray Code)
-  17,  // Decimal: 30 => 10001 (Gray Code)
-  16   // Decimal: 31 => 10000 (Gray Code)
+  31,   // Decimal: 2  => 00011 (Gray Code)
+  30,   // Decimal: 3  => 00010 (Gray Code)
+  3,   // Decimal: 4  => 00110 (Gray Code)
+  2,   // Decimal: 5  => 00111 (Gray Code)
+  4,   // Decimal: 6  => 00101 (Gray Code)
+  5,   // Decimal: 7  => 00100 (Gray Code)
+  27,  // Decimal: 8  => 01100 (Gray Code)
+  26,  // Decimal: 9  => 01101 (Gray Code)
+  28,  // Decimal: 10 => 01111 (Gray Code)
+  29,  // Decimal: 11 => 01110 (Gray Code)
+  24,  // Decimal: 12 => 01010 (Gray Code)
+  25,  // Decimal: 13 => 01011 (Gray Code)
+  23,   // Decimal: 14 => 01001 (Gray Code)
+  22,   // Decimal: 15 => 01000 (Gray Code)
+  11,  // Decimal: 16 => 11000 (Gray Code)
+  10,  // Decimal: 17 => 11001 (Gray Code)
+  12,  // Decimal: 18 => 11011 (Gray Code)
+  13,  // Decimal: 19 => 11010 (Gray Code)
+  8,  // Decimal: 20 => 11110 (Gray Code)
+  9,  // Decimal: 21 => 11111 (Gray Code)
+  7,  // Decimal: 22 => 11101 (Gray Code)
+  6,  // Decimal: 23 => 11100 (Gray Code)
+  16,  // Decimal: 24 => 10100 (Gray Code)
+  17,  // Decimal: 25 => 10101 (Gray Code)
+  15,  // Decimal: 26 => 10111 (Gray Code)
+  14,  // Decimal: 27 => 10110 (Gray Code)
+  19,  // Decimal: 28 => 10010 (Gray Code)
+  18,  // Decimal: 29 => 10011 (Gray Code)
+  20,  // Decimal: 30 => 10001 (Gray Code)
+  21   // Decimal: 31 => 10000 (Gray Code)
 };
 
 float deg=45; // Rotation degree
@@ -56,6 +56,7 @@ int grayIn;
 int binary;
 int degree;
 int home;
+int home1 = 0;
 int repet = 0;
 
 
@@ -80,20 +81,21 @@ void setup()
   
   Serial.begin(250000);                                                 //Baud rate of communication 
 
-  analogWrite(6, 60);
+  //analogWrite(6, 60);
 
   Serial.println("Enter the desired rotation in degree.");  
   
   while (Serial.available() == 0)                                       //Obtaining data from user
   { 
     //Wait for user input
-    grayIn = greycodeToAngle(analogRead(0), analogRead(1), analogRead(2), analogRead(3), analogRead(4));
-    //Serial.print("It should print 10001: ");
-    //Serial.println(grayIn, BIN);
-    binary = grayToBinary(grayIn);
-    //Serial.println(binary);
-    degree = (binary * 360)/32;
-    Serial.println(degree);
+    // grayIn = greycodeToAngle(analogRead(0), analogRead(1), analogRead(2), analogRead(3), analogRead(4));
+    // //Serial.print("It should print 10001: ");
+    // Serial.print(grayIn);
+    // Serial.print(",");
+    // binary = grayToBinary(grayIn);
+    // Serial.println(binary);
+    // degree = (binary * 360)/32;
+    //Serial.println(degree);
 
     delay(30);
   }  
@@ -182,11 +184,11 @@ void loop()
 
     rep=rep+1;                               // increasing the repetition indicator
     Serial.print("shaft possition from optical absolute sensor from home position: ");
-    Serial.println(0);
-    
-    Serial.print("shaft displacement from optical absolute sensor: ");
     Serial.println(degree - home);
-    
+
+    Serial.print("shaft displacement from optical absolute sensor: ");
+    Serial.println(degree - home1);
+    home1 = degree;
     Serial.print("Shaft displacement from motor's builtin encoder: ");
     
     //every full Revolution of the shaft is associated with 228 counts of builtin  
@@ -210,18 +212,12 @@ int greycodeToAngle(int Azeromsb, int Aone, int Atwo, int Athree, int Afourlsb){
   three = Athree > treshold3 ? 1 : 0;
   fourLSB = Afourlsb > treshold4 ? 1 : 0;
 
-  concat = 0b10000*zeroMSB + 0b1000*one + 0b100*two + 0b10*three + fourLSB;
+  concat = 0b10000*(!zeroMSB) + 0b1000*one + 0b100*two + 0b10*three + fourLSB;
 
   return concat;
 }
 
 int grayToBinary(int gray){
-  // int binary=0;
-  // for(;gray;gray=gray>>1){
-  //   binary^=gray; //binary=binary^gray;
-  // }
-  // return binary;
-
   return decimalToGrayTable[gray];
 }
 

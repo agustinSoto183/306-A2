@@ -1,8 +1,8 @@
 //Henissa was here! // to do: threshold for analogue 0 and 1
 //#define NOPRINT // comment me out if you want to have no prints
 #define NOPRINTANALOGUE // comment me out if you want to have no analogue prints
-#define TRESHOLDA0 400
-#define TRESHOLDA1 400
+#define TRESHOLDA0 488
+#define TRESHOLDA1 427
 #define STOP
 
 
@@ -208,6 +208,7 @@ void loop() {
 
     if((QuadratureChannel1 == HIGH)&&(QuadratureChannel2 == HIGH)&&(QuadratureChannel2m == LOW)){
       Qdirectionm = Qdirectionm + 1;
+
     }
 
     if((QuadratureChannel1 == LOW)&&(QuadratureChannel2 == LOW)&&(QuadratureChannel2m == HIGH)){
@@ -226,11 +227,11 @@ void loop() {
       dirm=1;
     }
 
-    if (Qdirectionm>100)    {
+    if (Qdirectionm>50)    {
       Qdirm=0;
     }
 
-    if (Qdirectionm<20){
+    if (Qdirectionm<10){
       Qdirm=1;
     }
 
