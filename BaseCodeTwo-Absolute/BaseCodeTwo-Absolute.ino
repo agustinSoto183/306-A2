@@ -1,4 +1,8 @@
-#define treshold 50
+#define treshold4 50
+#define treshold3 50
+#define treshold2 50
+#define treshold1 50
+#define treshold0 50
 
 float deg=45; // Rotation degree
 float s = 0;  //Encoder counts
@@ -15,7 +19,9 @@ int one;
 int zerolsb;
 int grayIn;
 int binary;
-
+int degree;
+int home;
+int repet = 0;
 
 
 int t=0;    //time in ms
@@ -28,6 +34,7 @@ int finish=0;  //finish indicator
 int rep=1;     //Repetition indicator
 
 int concat;
+int concat1;
 
 int gray;
 
@@ -116,15 +123,25 @@ void loop()
     delay(500);                              //half second delay
 
     grayIn = greycodeToAngle(analogRead(4), analogRead(3), analogRead(2), analogRead(1), analogRead(0));
+    Serial.print("It should print 10001: ");
+    Serial.println(grayIn, BIN);
     binary = grayToBinary(grayIn);
+    Serial.print("It should print 11110 or 30: ");
+    Serial.println(binary);
+    degree = (binary * 360)/31;
+    Serial.print("It should print 348.39: ");
+    Serial.println(degree);
 
+    if(repet == 0){
+      home = degree;
+      repet = 1;
+    }
 
     rep=rep+1;                               // increasing the repetition indicator
     Serial.print("shaft possition from optical absolute sensor from home position: ");
-    Serial.println(0);
+    Serial.println(degree);
     
     Serial.print("shaft displacement from optical absolute sensor: ");
-    Serial.println(0);
     
     Serial.print("Shaft displacement from motor's builtin encoder: ");
     
@@ -143,15 +160,16 @@ void loop()
 }
 
 int greycodeToAngle(int Afourmsb, int Athree, int Atwo, int Aone, int Azerolsb){
-  fourmsb = Afourmsb > treshold ? 1 : 0;
-  three = Athree > treshold ? 1 : 0;
-  two = Atwo > treshold ? 1 : 0;
-  one = Aone > treshold ? 1 : 0;
-  zerolsb = Azerolsb > treshold ? 1 : 0;
+  fourmsb = Afourmsb > treshold4 ? 1 : 0;
+  three = Athree > treshold3 ? 1 : 0;
+  two = Atwo > treshold2 ? 1 : 0;
+  one = Aone > treshold1 ? 1 : 0;
+  zerolsb = Azerolsb0 > treshold ? 1 : 0;
 
   concat = 0b10000*fourmsb + 0b1000*three + 0b100*two + 0b100*one + zerolsb;
+  concat1 = 0b10000*1 + 0b1000*0 + 0b100*0 + 0b100*0 + 1; //gray code
 
-  return concat;
+  return concat1;
 }
 
 int grayToBinary(int gray){
