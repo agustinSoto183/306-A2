@@ -214,7 +214,7 @@ int greycodeToAngle(int Azeromsb, int Aone, int Atwo, int Athree, int Afourlsb){
 
   concat = 0b10000*(!zeroMSB) + 0b1000*one + 0b100*two + 0b10*three + fourLSB;
 
-  return concat;
+  return concat;//10010
 }
 
 int grayToBinary(int gray){
