@@ -1,8 +1,8 @@
 //Henissa was here! // to do: threshold for analogue 0 and 1
 //#define NOPRINT // comment me out if you want to have no prints
 #define NOPRINTANALOGUE // comment me out if you want to have no analogue prints
-#define TRESHOLDA0 400
-#define TRESHOLDA1 400
+#define TRESHOLDA0 865
+#define TRESHOLDA1 626
 #define STOP
 
 
@@ -57,8 +57,8 @@ int repeat=0;    //repeat indicator to only let the memory of time for the Purpo
 
 void setup() {
   // put your setup code here, to run on
-  pinMode(0, INPUT); //Set quadriture encoders signal as inputs
-  pinMode(1, INPUT);
+  pinMode(A0, INPUT); //Set quadriture encoders signal as inputs
+  pinMode(A1, INPUT);
 
   Serial.begin(250000);                  //Baud rate of communication
 
@@ -226,11 +226,11 @@ void loop() {
       dirm=1;
     }
 
-    if (Qdirectionm>100)    {
+    if (Qdirectionm>50)    {
       Qdirm=0;
     }
 
-    if (Qdirectionm<20){
+    if (Qdirectionm<10){
       Qdirm=1;
     }
 

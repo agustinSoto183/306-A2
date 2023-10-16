@@ -1,8 +1,8 @@
-#define treshold4 790
-#define treshold3 777
-#define treshold2 841
-#define treshold1 826
-#define treshold0 847
+#define treshold4 767
+#define treshold3 645
+#define treshold2 834
+#define treshold1 834
+#define treshold0 842
 
 const byte decimalToGrayTable[32] = {
   0,   // Decimal: 0  => 00000 (Gray Code)
@@ -82,6 +82,14 @@ void setup()
   Serial.begin(250000);                                                 //Baud rate of communication 
 
   Serial.println("Enter the desired rotation in degree.");  
+  pinMode(3,OUTPUT); //direction
+  pinMode(6,OUTPUT); // power of motor
+    // put your main code here, to run repeatedly:
+  pinMode(A0, INPUT); //Set absolut encoders signal as inputs
+  pinMode(A1, INPUT); 
+  pinMode(A2, INPUT); 
+  pinMode(A3, INPUT); 
+  pinMode(A4, INPUT); //LSB
   
   analogWrite(6,0);
 
@@ -95,7 +103,7 @@ void setup()
   {
     analogWrite(3,255);               //change the direction of rotation by applying voltage to pin 3 of arduino
   }
-  deg=abs(deg);  
+  deg=abs(deg);
 
   grayIn = greycodeToAngle(analogRead(0), analogRead(1), analogRead(2), analogRead(3), analogRead(4));
   binary = grayToBinary(grayIn);
@@ -116,12 +124,7 @@ float ki = .02;                               //integral gain of PI
 
 void loop() 
 {
-  // put your main code here, to run repeatedly:
-  pinMode(0, INPUT); //Set absolut encoders signal as inputs
-  pinMode(1, INPUT); 
-  pinMode(2, INPUT); 
-  pinMode(3, INPUT); 
-  pinMode(4, INPUT); //LSB
+
 
       
   t=millis();                 //reading time
@@ -173,6 +176,15 @@ void loop()
     Serial.println(CurrentReading);
     //Serial.println(CurrentReading);
 
+    float diff = prevReading-CurrentReading;
+    bool zeroed = abs(diff)>180;
+    float add = 0;
+    
+    if (zeroed && (diff>0)) {add = -360;}
+    else if (zeroed && (diff < 0)) {add = 360;}
+    displacement = -(diff + add);
+
+
     // dif = prevReading - CurrentReading;//-10
     // crossedZero = abs(dif) >= 180;
     // if (dif > 0)){
@@ -184,19 +196,19 @@ void loop()
     // }else{
     //   OverflowExtra = 180;
     //}
-      if ((prevReading > 180 && (CurrentReading - prevReading) < 0) || ((CurrentReading - prevReading) > 0) ){ //CW
-        if (prevReading + deg >= 360) {
-          OverflowExtra = +360;
-        }else{
-          OverflowExtra = 0;
-        }
-      }else if((prevReading < 180 && (CurrentReading - prevReading) > 0) || ((CurrentReading - prevReading) < 0) ){//CCW
-        if (prevReading - deg < 0) {
-          OverflowExtra = -360;
-        }else{
-          OverflowExtra = 0;
-        }
-      }
+      // if ((prevReading > 180 && (CurrentReading - prevReading) < 0) || ((CurrentReading - prevReading) > 0) ){ //CW
+      //   if (prevReading + deg >= 360) {
+      //     OverflowExtra = +360;
+      //   }else{
+      //     OverflowExtra = 0;
+      //   }
+      // }else if((prevReading < 180 && (CurrentReading - prevReading) > 0) || ((CurrentReading - prevReading) < 0) ){//CCW
+      //   if (prevReading - deg < 0) {
+      //     OverflowExtra = -360;
+      //   }else{
+      //     OverflowExtra = 0;
+      //   }
+      // }
 
     //if (prevReading + deg >= 360) {
     //   OverflowExtra = +360;
@@ -213,7 +225,6 @@ void loop()
     Serial.print("shaft possition from optical absolute sensor from home position: ");
     Serial.println(abs(distanceFromHome));
 
-    displacement = CurrentReading - prevReading + OverflowExtra;
     Serial.print("shaft displacement from optical absolute sensor: ");
     Serial.println(abs(displacement));
    
