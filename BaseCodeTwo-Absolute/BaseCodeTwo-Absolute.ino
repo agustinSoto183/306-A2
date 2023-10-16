@@ -1,4 +1,4 @@
-#define treshold4 800
+y#define treshold4 800
 #define treshold3 800
 #define treshold2 850
 #define treshold1 850
@@ -19,7 +19,7 @@ const byte decimalToGrayTable[32] = {
   14,  // Decimal: 11 => 01110 (Gray Code)
   10,  // Decimal: 12 => 01010 (Gray Code)
   11,  // Decimal: 13 => 01011 (Gray Code)
-  9,   // Decimal: 14 => 01001 (Gray Code)
+  9,   // Decimal: 14 => 01001 (Gray Code)x
   8,   // Decimal: 15 => 01000 (Gray Code)
   24,  // Decimal: 16 => 11000 (Gray Code)
   25,  // Decimal: 17 => 11001 (Gray Code)
