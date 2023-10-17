@@ -174,7 +174,6 @@ void loop()
     CurrentReading = (binary * 360)/32;
 
     Serial.println(CurrentReading);
-    //Serial.println(CurrentReading);
 
     float diff = prevReading-CurrentReading;
     bool zeroed = abs(diff)>180;
@@ -183,41 +182,6 @@ void loop()
     if (zeroed && (diff>0)) {add = -360;}
     else if (zeroed && (diff < 0)) {add = 360;}
     displacement = -(diff + add);
-
-
-    // dif = prevReading - CurrentReading;//-10
-    // crossedZero = abs(dif) >= 180;
-    // if (dif > 0)){
-    //   if (crossedZero){
-    //     OverflowExtra = -180;
-    //   }else{
-    //     OverflowExtra = 0;
-    //   }
-    // }else{
-    //   OverflowExtra = 180;
-    //}
-      // if ((prevReading > 180 && (CurrentReading - prevReading) < 0) || ((CurrentReading - prevReading) > 0) ){ //CW
-      //   if (prevReading + deg >= 360) {
-      //     OverflowExtra = +360;
-      //   }else{
-      //     OverflowExtra = 0;
-      //   }
-      // }else if((prevReading < 180 && (CurrentReading - prevReading) > 0) || ((CurrentReading - prevReading) < 0) ){//CCW
-      //   if (prevReading - deg < 0) {
-      //     OverflowExtra = -360;
-      //   }else{
-      //     OverflowExtra = 0;
-      //   }
-      // }
-
-    //if (prevReading + deg >= 360) {
-    //   OverflowExtra = +360;
-    // } else if (prevReading - deg < 0) {
-    //   OverflowExtra = -360;
-    // } else {
-    //   OverflowExtra = 0;
-    // }
-
  
 
     distanceFromHome = CurrentReading - home;

@@ -226,7 +226,7 @@ void loop() {
       dirm=1;
     }
 
-    if (Qdirectionm>50)    {
+    if (Qdirectionm>40)    {
       Qdirm=0;
     }
 
