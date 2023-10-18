@@ -1,8 +1,8 @@
-#define treshold4 767
-#define treshold3 645
-#define treshold2 834
-#define treshold1 834
-#define treshold0 842
+#define treshold4 785
+#define treshold3 651
+#define treshold2 854
+#define treshold1 829
+#define treshold0 820
 
 const byte decimalToGrayTable[32] = {
   0,   // Decimal: 0  => 00000 (Gray Code)
