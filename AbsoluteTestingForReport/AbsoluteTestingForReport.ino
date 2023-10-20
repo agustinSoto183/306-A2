@@ -1,42 +1,42 @@
-#define treshold4 785
-#define treshold3 651
-#define treshold2 854
-#define treshold1 829
-#define treshold0 820
+#define treshold4 796
+#define treshold3 677
+#define treshold2 839
+#define treshold1 823
+#define treshold0 812
 
-const byte GrayToDecimal[32] = {
-  0,   // Gray: 0
-  1,   // Gray: 1
-  31,   // Gray: 2
-  30,   // Gray: 3
-  3,   // Gray: 4
-  2,   // Gray: 5
-  4,   // Gray: 6
-  5,   // Gray: 7
-  27,  // Gray: 8
-  26,  // Gray: 9
-  28,  // Gray: 10
-  29,  // Gray: 11
-  24,  // Gray: 12
-  25,  // Gray: 13
-  23,   // Gray: 14
-  22,   // Gray: 15
-  11,  // Gray: 16
-  10,  // Gray: 17
-  12,  // Gray: 18
-  13,  // Gray: 19
-  8,  // Gray: 20
-  9,  // Gray: 21
-  7,  // Gray: 22
-  6,  // Gray: 23
-  16,  // Gray: 24
-  17,  // Gray: 25
-  15,  // Gray: 26
-  14,  // Gray: 27 
-  19,  // Gray: 28 
-  18,  // Gray: 29
-  20,  // Gray: 30 
-  21   // Gray: 31
+const byte decimalToGrayTable[32] = {
+  0,   // Decimal: 0  => 00000 (Gray Code)
+  1,   // Decimal: 1  => 00001 (Gray Code)
+  31,   // Decimal: 2  => 00011 (Gray Code)
+  30,   // Decimal: 3  => 00010 (Gray Code)
+  3,   // Decimal: 4  => 00110 (Gray Code)
+  2,   // Decimal: 5  => 00111 (Gray Code)
+  4,   // Decimal: 6  => 00101 (Gray Code)
+  5,   // Decimal: 7  => 00100 (Gray Code)
+  27,  // Decimal: 8  => 01100 (Gray Code)
+  26,  // Decimal: 9  => 01101 (Gray Code)
+  28,  // Decimal: 10 => 01111 (Gray Code)
+  29,  // Decimal: 11 => 01110 (Gray Code)
+  24,  // Decimal: 12 => 01010 (Gray Code)
+  25,  // Decimal: 13 => 01011 (Gray Code)
+  23,   // Decimal: 14 => 01001 (Gray Code)
+  22,   // Decimal: 15 => 01000 (Gray Code)
+  11,  // Decimal: 16 => 11000 (Gray Code)
+  10,  // Decimal: 17 => 11001 (Gray Code)
+  12,  // Decimal: 18 => 11011 (Gray Code)
+  13,  // Decimal: 19 => 11010 (Gray Code)
+  8,  // Decimal: 20 => 11110 (Gray Code)
+  9,  // Decimal: 21 => 11111 (Gray Code)
+  7,  // Decimal: 22 => 11101 (Gray Code)
+  6,  // Decimal: 23 => 11100 (Gray Code)
+  16,  // Decimal: 24 => 10100 (Gray Code)
+  17,  // Decimal: 25 => 10101 (Gray Code)
+  15,  // Decimal: 26 => 10111 (Gray Code)
+  14,  // Decimal: 27 => 10110 (Gray Code)
+  19,  // Decimal: 28 => 10010 (Gray Code)
+  18,  // Decimal: 29 => 10011 (Gray Code)
+  20,  // Decimal: 30 => 10001 (Gray Code)
+  21   // Decimal: 31 => 10000 (Gray Code)
 };
 
 float deg=45; // Rotation degree
@@ -59,6 +59,10 @@ int prevReading = 0;
 int home = 0;
 int distanceFromHome = 0;
 int displacement = 0;
+int direction = 0;
+int OverflowExtra = 0;
+int crossedZero = 0;
+int dif = 0;
 
 
 int t=0;    //time in ms
@@ -68,31 +72,32 @@ int t0=0;   //memory for time in ms
 int finish=0;  //finish indicator
 int rep=1;     //Repetition indicator
 
-int concat; //Concatenate variable
+int concat;
 int gray;
 
 
 void setup() 
 {
-  //Pin Setup
+  
+  Serial.begin(250000);                                                 //Baud rate of communication 
+
+  //Serial.println("Enter the desired rotation in degree.");  
   pinMode(3,OUTPUT); //direction
   pinMode(6,OUTPUT); // power of motor
+    // put your main code here, to run repeatedly:
   pinMode(A0, INPUT); //Set absolut encoders signal as inputs
   pinMode(A1, INPUT); 
   pinMode(A2, INPUT); 
   pinMode(A3, INPUT); 
   pinMode(A4, INPUT); //LSB
+  
+  analogWrite(6,0);
 
-  Serial.begin(250000);                                                 //Baud rate of communication 
-
-  Serial.println("Enter the desired rotation in degree."); 
   while (Serial.available() == 0)                                       //Obtaining data from user
   { 
     //Wait for user input
   }  
   
-  analogWrite(6,0);
-
   deg = Serial.readString().toFloat(); //Reading the Input string from Serial port.
   if (deg<0)
   {
@@ -100,12 +105,12 @@ void setup()
   }
   deg=abs(deg);
 
-  grayIn = AnalogueToGray(analogRead(0), analogRead(1), analogRead(2), analogRead(3), analogRead(4)); //Read current position and convert to gray code
-  binary = grayToBinary(grayIn); //Convert gray code to Binary
-  CurrentReading = (binary * 360)/32; //Convert binary value to angle value
+  grayIn = greycodeToAngle(analogRead(0), analogRead(1), analogRead(2), analogRead(3), analogRead(4));
+  binary = grayToBinary(grayIn);
+  CurrentReading = (binary * 360)/32;
 
-  home = CurrentReading;
-  prevReading = CurrentReading;                                
+  home = CurrentReading; //315
+  prevReading = CurrentReading; //315                                   
 }
 
 
@@ -113,9 +118,15 @@ float kp = .6*90/deg;                         //proportional gain of PI
 float ki = .02;                               //integral gain of PI 
 
 
+
+
+
+
 void loop() 
 {
 
+
+      
   t=millis();                 //reading time
   t0=t;                       //saving the current time in memory
   while (t<t0+4000 && rep<=10)      //let the code to ran for 4 seconds each with repetitions of 10
@@ -151,56 +162,60 @@ void loop()
     }
 
     t=millis();           //updating time
-    finish=1;             //changing finish indicator
+    finish=1;             //cghanging finish indicator
 
   }
 
   if (finish==1){                            //this part of the code is for displaying the result
     delay(500);                              //half second delay
 
-    grayIn = AnalogueToGray(analogRead(0), analogRead(1), analogRead(2), analogRead(3), analogRead(4));
+    grayIn = greycodeToAngle(analogRead(0), analogRead(1), analogRead(2), analogRead(3), analogRead(4));
     binary = grayToBinary(grayIn);
-    CurrentReading = (binary * 360)/32; //Read values and convert to an angular value
+    CurrentReading = (binary * 360)/32;
 
-    float diff = prevReading - CurrentReading;
+    //Serial.println(CurrentReading);
+
+    float diff = prevReading-CurrentReading;
     bool zeroed = abs(diff)>180;
     float add = 0;
     
     if (zeroed && (diff>0)) {add = -360;}
-    else if (zeroed && (diff < 0)) {add = 360;} //Check for a full rotation and adjust the displacement accordingly
+    else if (zeroed && (diff < 0)) {add = 360;}
+    displacement = -(diff + add);
+ 
 
-    displacement = -(diff + add); //Angular displacement
-    distanceFromHome = CurrentReading - home; 
-    
+    distanceFromHome = CurrentReading - home;
     rep=rep+1;                               // increasing the repetition indicator
+    //Serial.print("shaft possition from optical absolute sensor from home position: ");
+    //Serial.println(abs(distanceFromHome));
 
-    Serial.print("shaft possition from optical absolute sensor from home position: ");
-    Serial.println(abs(distanceFromHome));
+    //Serial.print("shaft displacement from optical absolute sensor: ");
+  
+    Serial.print(abs(displacement));
 
-    Serial.print("shaft displacement from optical absolute sensor: ");
-    Serial.println(abs(displacement));
-   
-    prevReading = CurrentReading; //Update previous reading
+    Serial.print(",");
+    //Serial.print(",");
+    prevReading = CurrentReading;
     
 
-    Serial.print("Shaft displacement from motor's builtin encoder: ");
+    //Serial.print("Shaft displacement from motor's builtin encoder: ");
     
     //every full Revolution of the shaft is associated with 228 counts of builtin  
     //encoder so to turn it to degre we can use this formula (s * 360 / 228), "s" is the number of  built-in encoder counts
     Serial.println(s * 360 / 228);
   
     float Error=(abs(displacement))-s*360/228;
-    Serial.print("Error :");
-    Serial.println(Error);                                    //displaying error
-    Serial.println();
+    // Serial.print("Error :");
+    // Serial.println(Error);                                    //displaying error
+    // Serial.println();
 
-    Serial.print("direction read by sensor:  "); //If displacement is negative, direction is CW else direction is CCW
-    if (displacement < 0){
-      Serial.println("CW");
-    }else{
-      Serial.println("CCW");  //Print direction
-    }
-    Serial.println();
+    // Serial.print("direction read by sensor:  ");
+    // if (displacement < 0){
+    //   Serial.println("CW");
+    // }else{
+    //   Serial.println("CCW");
+    // }
+    // Serial.println();
 
 
     s = 0;
@@ -209,20 +224,20 @@ void loop()
   analogWrite(6,0);               //turning off the motor
 }
 
-int AnalogueToGray(int Azeromsb, int Aone, int Atwo, int Athree, int Afourlsb){
+int greycodeToAngle(int Azeromsb, int Aone, int Atwo, int Athree, int Afourlsb){
   zeroMSB = Azeromsb > treshold0 ? 1 : 0;
   one = Aone > treshold1 ? 1 : 0;
   two = Atwo > treshold2 ? 1 : 0;
   three = Athree > treshold3 ? 1 : 0;
   fourLSB = Afourlsb > treshold4 ? 1 : 0;
 
-  concat = 0b10000*(!zeroMSB) + 0b1000*one + 0b100*two + 0b10*three + fourLSB; //Concatenate values to gray code
+  concat = 0b10000*(!zeroMSB) + 0b1000*one + 0b100*two + 0b10*three + fourLSB;
 
   return concat;
 }
 
 int grayToBinary(int gray){
-  return GrayToDecimal[gray]; //Uses index as gray and maps corresponding binary value
+  return decimalToGrayTable[gray];
 }
 
 

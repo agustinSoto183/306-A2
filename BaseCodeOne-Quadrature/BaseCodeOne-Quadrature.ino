@@ -1,9 +1,5 @@
-//Henissa was here! // to do: threshold for analogue 0 and 1
-//#define NOPRINT // comment me out if you want to have no prints
-#define NOPRINTANALOGUE // comment me out if you want to have no analogue prints
 #define TRESHOLDA0 865
 #define TRESHOLDA1 626
-#define STOP
 
 
 int numStripes = 60; // number of stripes in each trace. ALTER THIS VALUE AS NEEDED
@@ -100,7 +96,7 @@ void loop() {
     s1=digitalRead(7);           //reading Chanel 1 of builtin encoder
     s2=digitalRead(8);           //reading Chanel 2 of builtin encoder
 
-    if (analogRead(0) > TRESHOLDA0){ // WAS 650, TRYING 200
+    if (analogRead(0) > TRESHOLDA0){ //Reading quadrature channels and converting to binary (1 or 0)
       QuadratureChannel1 = 1;
     }
     else {
@@ -114,12 +110,6 @@ void loop() {
       QuadratureChannel2 = 0;
     }
  
-    //Print analogue values
-    #ifndef NOPRINTANALOGUE
-      Serial.print(analogRead(0) > TRESHOLDA0);
-      Serial.print(", ");
-      Serial.println(analogRead(1) > TRESHOLDA1);
-    #endif
 
     if (s1!=s2 && r==0){
       s=s+1;      //counters for rpm that displyed every 5s
@@ -135,63 +125,63 @@ void loop() {
     }
 
     if(QuadratureChannel1 != QuadratureChannel2 && repetition == 0){
-      Qcounter5s = Qcounter5s + 1;
-      repetition = 1;
+      Qcounter5s = Qcounter5s + 1; //Counting the number of transitions
+      repetition = 1; //Makes sure only one counter is added
     }
 
     if(QuadratureChannel1 == QuadratureChannel2 && repetition == 1){
-      Qcounter5s = Qcounter5s + 1;
-      repetition = 0;
+      Qcounter5s = Qcounter5s + 1; //Counting the number of transitions
+      repetition = 0; //Makes sure only one counter is added
     }
 
-    b=millis();                                             //updating time
+    b=millis();                                    //updating time
 
     if (b%100<=1 && repeat==0){
-      t0=b;                                                 //storing the current time once
+      t0=b;                                       //storing the current time once
       repeat=1;
     }
 
     if (b%100==0)
     {
-      #ifndef NOPRINT
-        //Serial.print("time in ms: ");
-        //Serial.print(b-t0);
-        //Serial.print("  spontaneous speed from builtin encoder:  ");
-      #endif
-      rpmm=(s_2/(2*114))*600;    
-      #ifndef NOPRINT                 //formulation for rpm in each 100ms for PI controller
-        //Serial.println(rpmm);
-      #endif
-      s_2=0;                          //reseting the counters of PI controller rpm meter
+
+      Serial.print("time in ms: ");
+      Serial.print(b-t0);
+      Serial.print("  spontaneous speed from builtin encoder:  ");
+
+      rpmm=(s_2/(2*114))*600;    //formulation for rpm in each 100ms for PI controller       
+       
+      Serial.println(rpmm);
+
+      s_2=0;                      //reseting the counters of PI controller rpm meter
 
       if ((b-t0)%5000==0) {
 
-        #ifndef NOPRINT
-          Serial.println();
-          Serial.print("RPM from builtin encoder: ");
-          Serial.println((s/(228))*12);                  //formula for rpm in each 5s
         
-          Serial.print("RPM from optical quadrature encoder: ");
-          Serial.println(((((360/(numStripes * 2)) * Qcounter5s)/5)/6)); // CODE ME
+        Serial.println();
+        Serial.print("RPM from builtin encoder: ");
+        Serial.println((s/(228))*12);                  //formula for rpm in each 5s
+      
+        Serial.print("RPM from optical quadrature encoder: ");
+        Serial.println(((((360/(numStripes * 2)) * Qcounter5s)/5)/6)); //formula for rpm in each 5s
 
-          Serial.print("Error: ");
-          Serial.println(((((360/(numStripes * 2)) * Qcounter5s)/5)/6)-((s/(228))*12)); //CODE ME
+        Serial.print("Error: ");
+        Serial.println(((((360/(numStripes * 2)) * Qcounter5s)/5)/6)-((s/(228))*12)); //error
 
-          Serial.print("direction read by motor's sensor: ");
-          if (dirm==0){Serial.print("CW");}
-          else{Serial.print("CCW");}
-          Serial.print("  ,   ");
+        Serial.print("direction read by motor's sensor: ");
+        if (dirm==0){Serial.print("CW");}
+        else{Serial.print("CCW");}
+        Serial.print("  ,   ");
 
-          Serial.print("direction read by sensor:  ");
-          if (Qdirm == 0){Serial.println("CW");}
-          else{Serial.println("CCW");}
-          Serial.println();
+        Serial.print("direction read by sensor:  ");
+        if (Qdirm == 0){Serial.println("CW");}
+        else{Serial.println("CCW");}
+        Serial.println();
 
-        #endif
+       
         s=0;
         Qcounter5s = 0;
         directionm=0;
-        Qdirectionm = 0;
+        Qdirectionm = 0; //Reset counters
       }
 
       delay(1);
@@ -206,7 +196,7 @@ void loop() {
       directionm=directionm+1;
     }
 
-    if((QuadratureChannel1 == HIGH)&&(QuadratureChannel2 == HIGH)&&(QuadratureChannel2m == LOW)){
+    if((QuadratureChannel1 == HIGH)&&(QuadratureChannel2 == HIGH)&&(QuadratureChannel2m == LOW)){ //reading the direction of motor by cheaking which chanel follows which
       Qdirectionm = Qdirectionm + 1;
     }
 
@@ -216,7 +206,8 @@ void loop() {
 
     s2m=s2;                    //memory of the previous builtin encoder chanel 2
 
-    QuadratureChannel2m = QuadratureChannel2;
+    QuadratureChannel2m = QuadratureChannel2; //memory of the previous builtin encoder chanel 2
+
 
     if (directionm>100){
       dirm=0;
@@ -226,7 +217,7 @@ void loop() {
       dirm=1;
     }
 
-    if (Qdirectionm>40)    {
+    if (Qdirectionm>40)    { //Set the direction
       Qdirm=0;
     }
 
@@ -237,8 +228,8 @@ void loop() {
     b=millis();                                             //updating time
   }
 
-  #ifdef STOP
+
   analogWrite(6,0);                                       //turning off the motor
   exitt=1;  
-  #endif
+
 }
